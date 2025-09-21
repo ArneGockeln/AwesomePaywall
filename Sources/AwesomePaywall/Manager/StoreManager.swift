@@ -9,14 +9,27 @@ import StoreKit
 import OSLog
 
 @MainActor
-final class StoreManager: ObservableObject {
-    static let shared = StoreManager()
+public final class StoreManager: ObservableObject {
+    public static let shared = StoreManager()
+
     @Published var products: [Product] = []
     @Published var purchasedProducts: [Product] = []
     @Published var subscriptionStatus: [Product.SubscriptionInfo.Status] = []
     @Published var hasPurchased: Bool = false
 
     @Published var errorMessages: [String] = []
+
+    // store product identifiers from AppStore Connect
+    private var productIdentifiers: [String] = []
+    // store terms of use url
+    public var termsOfUseUrl: String?
+    // store privacy policy url
+    public var privacyPolicyUrl: String?
+
+    // Quick check if the current user has purchased
+    public func isPayingCustomer() -> Bool {
+        return hasPurchased
+    }
 
     private var updateTask: Task<Void, Never>? = nil
 
@@ -30,15 +43,18 @@ final class StoreManager: ObservableObject {
 
     /// Fetch products from the app store and load current entitlements
     /// This should only run once. If needed set force to true and it will run again.
-    func configure(force: Bool = false) async {
+    public func configure(productIdentifiers: [String], termsOfUseUrl: String? = nil, privacyUrl: String? = nil,  force: Bool = false) async {
         if force || self.products.isEmpty {
+            self.productIdentifiers = productIdentifiers
             self.errorMessages = []
+            self.termsOfUseUrl = termsOfUseUrl
+            self.privacyPolicyUrl = privacyUrl
             await fetchProducts()
             await loadCurrentEntitlements()
         }
     }
 
-    // MARK: - Caluclate Discount based on weekly and yearly price
+    // MARK: - Calculate Discount based on weekly and yearly price
     func calculateDiscount() -> Int {
         guard let weekly = self.products.first(where: { $0.subscription?.subscriptionPeriod == .weekly })?.price,
               let yearly = self.products.first(where: { $0.subscription?.subscriptionPeriod == .yearly })?.price else {
@@ -93,11 +109,8 @@ final class StoreManager: ObservableObject {
     // MARK: - Fetch Products
     private func fetchProducts() async {
         do {
-            // Specify your product identifiers
-            let productIds: [String] = ProductIdentifier.allCases.map { $0.rawValue }
-
             // Fetch products from the App Store
-            products = try await Product.products(for: productIds)
+            products = try await Product.products(for: self.productIdentifiers)
 
             // Sort by price
             products.sort(by: { $0.price > $1.price })
@@ -173,7 +186,7 @@ final class StoreManager: ObservableObject {
         }
 
         do {
-            try self.enableProLicense(productIdentifier: ProductIdentifier(rawValue: product.id)!)
+            try self.enableProLicense(for: product.id)
             purchasedProducts.append(product)
         } catch {
             Logger.app.error("StoreManager: unlockNonConsumable error: \(error.localizedDescription, privacy: .public)")
@@ -197,7 +210,7 @@ final class StoreManager: ObservableObject {
                     switch status.state {
                     case .subscribed:
                         purchasedProducts.append(product)
-                        try self.enableProLicense(productIdentifier: ProductIdentifier(rawValue: product.id)!)
+                        try self.enableProLicense(for: product.id)
 
                         Logger.app.info("StoreManager: User is subscribed to \(product.displayName, privacy: .public)")
                     case .expired:
@@ -249,12 +262,12 @@ final class StoreManager: ObservableObject {
     /// Sets UserDefaults "hasPro" to true
     /// Sets UserDefaults "currentEntitlement" to passed name
     /// - Parameters:
-    ///     - productIdentifier: Annual, Monthly or Lifetime
+    ///     - productIdentifier: AppNamePro.Annual, AppNamePro.Monthly, AppNamePro.Weekly or AppNamePro.Lifetime
     /// - throws: StoreError.productNotFound
-    private func enableProLicense(productIdentifier: ProductIdentifier) throws {
-        Logger.app.info("StoreManager: entitlement name: \(productIdentifier.rawValue)")
+    private func enableProLicense(for productIdentifier: String) throws {
+        Logger.app.info("StoreManager: entitlement name: \(productIdentifier)")
         // get purchased product name
-        guard let product = self.products.first(where: { $0.id == productIdentifier.rawValue }) else {
+        guard let product = self.products.first(where: { $0.id == productIdentifier }) else {
             throw StoreError.productNotFound
         }
 

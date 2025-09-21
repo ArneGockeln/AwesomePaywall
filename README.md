@@ -19,21 +19,23 @@ https://https://github.com/ArneGockeln/AwesomePaywall.git, :branch="main"
 - Go to `Apps` > `Your App Name` > `Subscriptions` > Subscription Group
 - Create a unique group: for example "ElatedSubscriptions"
 
+#### Annual Plan
 - Go to that new group
 - Create a new subscription with Reference Name "Annual Plan" and Product ID "YourAppNamePro.Annual"
 - Set Subscription Duration to 1 year
 - Set a price for the annual plan. Like 29.99
 
+#### Weekly Plan
 - Create a new subscription with Reference Name "Weekly Plan" and Product ID "YourAppNamePro.Weekly"
 - Set Subscription Duration to 1 week
 - Set a price for the weekly plan. Like 4.99
 
+#### Free for 3 days
 - Set an [introductory offer](https://developer.apple.com/help/app-store-connect/manage-subscriptions/set-up-introductory-offers-for-auto-renewable-subscriptions/){:target="_blank"} for the weekly plan of 3 days
 - Go to the weekly plan
 - Click on (+) next to Subscription Prices and choose Introductory Offer
 - Set start date and no end date!
 - Select free and duration 3 days
-
 
 ### 2. Add storekit File
 In Xcode add a synchronised storekit file to your project.
@@ -46,7 +48,7 @@ In Xcode add a synchronised storekit file to your project.
 
 ### 3. Setup the StoreManager
 To setup the StoreManager just import AwesomePaywall in your main app file and run a configuration task.
-Don't forget to set the terms of use and privacy policy web urls!
+Don't forget to set the product identifiers, terms of use and privacy policy web urls!
 
 ```swift
 import SwiftUI
@@ -65,8 +67,8 @@ struct ElatedApp: App {
                 .task {
                     // set an ordered list of product identifiers. First in list appears first in paywall.
                     let identifiers = [
-                        "ElatedPro.Annual",
-                        "ElatedPro.Weekly"
+                        "YourAppNamePro.Annual",
+                        "YourAppNamePro.Weekly"
                     ]
                     
                     await storeManager.configure(productIdentifiers: identifiers,
@@ -138,6 +140,4 @@ The backgroundColor is fullscreen and the highlightColor tints the border of the
 
 The following projects have integrated AwesomePaywall in their App.
 
-- [PushUp Battle](https://arnesoftware.com/apps) available on the [AppStore]()
 - [Elated | Widget Counter](https://arnesoftware.com/apps) available on the [AppStore](https://apps.apple.com/de/app/elated-urlaubs-countdown-timer/id6740820297)
-

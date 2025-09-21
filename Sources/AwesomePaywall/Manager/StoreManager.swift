@@ -109,9 +109,6 @@ public final class StoreManager: ObservableObject {
     // MARK: - Fetch Products
     private func fetchProducts() async {
         do {
-            // Specify your product identifiers
-//            let productIds: [String] = PaywallProductIdentifier.allCases.map { $0.rawValue }
-
             // Fetch products from the App Store
             products = try await Product.products(for: self.productIdentifiers)
 
@@ -189,7 +186,6 @@ public final class StoreManager: ObservableObject {
         }
 
         do {
-//            try self.enableProLicense(productIdentifier: PaywallProductIdentifier(rawValue: product.id)!)
             try self.enableProLicense(for: product.id)
             purchasedProducts.append(product)
         } catch {
@@ -215,7 +211,6 @@ public final class StoreManager: ObservableObject {
                     case .subscribed:
                         purchasedProducts.append(product)
                         try self.enableProLicense(for: product.id)
-//                        try self.enableProLicense(productIdentifier: PaywallProductIdentifier(rawValue: product.id)!)
 
                         Logger.app.info("StoreManager: User is subscribed to \(product.displayName, privacy: .public)")
                     case .expired:
@@ -281,19 +276,6 @@ public final class StoreManager: ObservableObject {
         UserDefaults.standard.set(product.displayName, forKey: "currentEntitlement")
         Logger.app.info("StoreManager: enabled \(product.displayName, privacy: .public) license.")
     }
-
-//    private func enableProLicense(productIdentifier: PaywallProductIdentifier) throws {
-//        Logger.app.info("StoreManager: entitlement name: \(productIdentifier.rawValue)")
-//        // get purchased product name
-//        guard let product = self.products.first(where: { $0.id == productIdentifier.rawValue }) else {
-//            throw StoreError.productNotFound
-//        }
-//
-//        hasPurchased = true
-//        UserDefaults.standard.set(hasPurchased, forKey: "hasPro")
-//        UserDefaults.standard.set(product.displayName, forKey: "currentEntitlement")
-//        Logger.app.info("StoreManager: enabled \(product.displayName, privacy: .public) license.")
-//    }
 
     /// Disable pro license
     /// Sets hasPurchased to false

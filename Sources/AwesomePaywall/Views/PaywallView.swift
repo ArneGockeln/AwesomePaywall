@@ -22,6 +22,7 @@ struct PaywallView<ViewContent: View>: View {
     @State private var progress: CGFloat = 0.0
     @State private var showCloseButton = true
     @State private var freeTrialEnabled: Bool = false
+
     @State private var showAlert: Bool = false
     @State private var errorMessage: String?
 
@@ -55,7 +56,9 @@ struct PaywallView<ViewContent: View>: View {
             HStack {
                 Spacer()
 
-                RestoreButtonView(isPurchasing: $purchaseInProgress)
+                RestoreButtonView {
+                    restorePurchase()
+                }
                 TermsOfUseButton(privacyUrl: storeModel.privacyPolicyUrl, termsOfUseUrl: storeModel.termsOfUseUrl)
 
                 Spacer()
@@ -92,7 +95,7 @@ struct PaywallView<ViewContent: View>: View {
                 self.errorMessage = nil
             }
         } message: {
-            Text(self.errorMessage ?? "")
+            Text(self.errorMessage ?? "An unknown error occurred.")
         }
         // select yearly plan on appear
         .onAppear {
@@ -112,19 +115,42 @@ struct PaywallView<ViewContent: View>: View {
     private func purchaseProduct() {
         Task {
             self.purchaseInProgress = true
-            do {
-                guard let product = self.selectedProduct else {
-                    throw PaywallViewError.productNotSelected
-                }
-
-                await self.storeModel.purchase(product)
-                UserDefaults.standard.set(self.storeModel.hasPurchased, forKey: "hasPro")
-                self.isPresented = false
-            } catch {
-                self.errorMessage = error.localizedDescription
+            guard let product = self.selectedProduct else {
+                self.displayError(message: "Product not selected.")
+                self.purchaseInProgress = false
+                return
             }
+
+            await self.storeModel.purchase(product)
+
+            UserDefaults.standard.set(self.storeModel.hasPurchased, forKey: "hasPro")
+            self.isPresented = false
             self.purchaseInProgress = false
         }
+    }
+
+    /// Restore previous purchases
+    private func restorePurchase() {
+        Task {
+            self.purchaseInProgress = true
+
+            await self.storeModel.restorePurchases()
+
+            if !self.storeModel.hasPurchased {
+                self.displayError(message: "No purchase restored.")
+                self.purchaseInProgress = false
+                return
+            }
+
+            self.purchaseInProgress = false
+            self.isPresented = false
+        }
+    }
+
+    /// Display error with custom title
+    private func displayError(message: String) {
+        self.errorMessage = message
+        self.showAlert.toggle()
     }
 }
 

@@ -63,7 +63,7 @@ struct PaywallView<ViewContent: View>: View {
 
                 Spacer()
             }
-            .padding(.bottom)
+            .padding(.bottom, 25)
         }
         .background(self.backgroundColor)
         .ignoresSafeArea()

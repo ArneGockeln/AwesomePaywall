@@ -19,9 +19,9 @@ extension PaywallView {
             .overlay(alignment: .bottom) {
                 Rectangle()
                     .frame(height: 1)
-                    .foregroundStyle(Color.black.opacity(0.5))
+                    .foregroundStyle(Color.black)
             }
-            .foregroundStyle(Color.black.opacity(0.5))
+            .foregroundStyle(Color.black)
             .font(.footnote)
         }
     }

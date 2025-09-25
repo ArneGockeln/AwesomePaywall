@@ -6,18 +6,25 @@
 //
 
 import SwiftUI
+import StoreKit
 
 // MARK: - Purchase Button
 extension PaywallView {
     struct PurchaseButtonView: View {
         @Binding var isPurchasing: Bool
         @Binding var isFreeTrial: Bool
+        @Binding var selectedProduct: Product?
         var onButtonPressed: () -> Void
 
         @EnvironmentObject private var storeModel: StoreManager
 
         var body: some View {
             VStack {
+                if let product = selectedProduct {
+                    Text("Plan auto-renews for \(product.displayPrice)/\(isFreeTrial ? "week" : "year") until canceled.")
+                        .font(.footnote)
+                }
+
                 if isPurchasing {
                     HStack(alignment: .center) {
                         Spacer()

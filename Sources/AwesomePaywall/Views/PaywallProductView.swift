@@ -76,9 +76,9 @@ extension PaywallView {
         private var priceFormatted: String {
             get {
                 if product.hasTrial() {
-                    "3 days free trial then \(product.displayPrice) per \(periodName)"
+                    "3 days free trial, then \(product.displayPrice)/\(periodName)"
                 } else {
-                    "\(product.displayPrice) per \(periodName)"
+                    "\(product.displayPrice)/\(periodName)"
                 }
             }
         }

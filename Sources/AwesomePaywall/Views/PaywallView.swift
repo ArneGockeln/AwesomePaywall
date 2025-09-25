@@ -48,7 +48,7 @@ struct PaywallView<ViewContent: View>: View {
             TrialRowView(isEnabled: $freeTrialEnabled, highlightColor: highlightColor)
 
             // Purchase Button
-            PurchaseButtonView(isPurchasing: $purchaseInProgress, isFreeTrial: $freeTrialEnabled) {
+            PurchaseButtonView(isPurchasing: $purchaseInProgress, isFreeTrial: $freeTrialEnabled, selectedProduct: $selectedProduct) {
                 purchaseProduct()
             }
 

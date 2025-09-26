@@ -6,7 +6,6 @@
 //
 
 import StoreKit
-import OSLog
 
 @MainActor
 public final class StoreManager: ObservableObject {
@@ -76,23 +75,23 @@ public final class StoreManager: ObservableObject {
             case let .success(.verified(transaction)):
                 /// Success! Verified transaction.
                 await self.handleTransaction(transaction)
-                Logger.app.debug("StoreManager: Transaction was successful.")
+                    Log.shared.info("Transaction was successful.")
             case let .success(.unverified(_, error)):
                 /// Success but unverified transaction
-                Logger.app.debug("StoreManager: Transaction was successful but unverified: \(error)")
+                    Log.shared.info("Transaction was successful but unverified: \(error)")
             case .pending:
                 /// Pending order
-                Logger.app.debug("StoreManager: Transaction is pending.")
+                    Log.shared.info("Transaction is pending.")
             case .userCancelled:
                 /// User cancelled through purchase process
-                Logger.app.debug("StoreManager: Transaction was cancelled.")
+                    Log.shared.info("Transaction was cancelled.")
             @unknown default:
                 /// Something different happened
-                Logger.app.debug("StoreManager: Unknown purchase result.")
+                    Log.shared.info("Unknown purchase result.")
             }
         } catch {
             self.disableProLicense()
-            Logger.app.error("StoreManager: Purchase failed: \(error, privacy: .public)")
+            Log.shared.error("Purchase failed: \(error)")
         }
     }
 
@@ -102,7 +101,7 @@ public final class StoreManager: ObservableObject {
             try await AppStore.sync()
             await loadCurrentEntitlements()
         } catch {
-            Logger.app.error("StoreManager: Restore Purchase error: \(error.localizedDescription, privacy: .public)")
+            Log.shared.error("Restore Purchase error: \(error.localizedDescription)")
         }
     }
 
@@ -117,7 +116,7 @@ public final class StoreManager: ObservableObject {
         } catch {
             self.disableProLicense()
             self.errorMessages.append("StoreManager: Failed to fetch products: \(error)")
-            Logger.app.error("StoreManager: Failed to fetch products: \(error, privacy: .public)")
+            Log.shared.error("Failed to fetch products: \(error)")
         }
     }
 
@@ -130,7 +129,7 @@ public final class StoreManager: ObservableObject {
                 await handleTransaction(transaction)
             }
         } catch {
-            Logger.app.error("StoreManager: Failed to load current entitlements: \(error, privacy: .public)")
+            Log.shared.error("Failed to load current entitlements: \(error)")
         }
     }
 
@@ -146,7 +145,7 @@ public final class StoreManager: ObservableObject {
                     // Mark transaction as finished
                     await transaction.finish()
                 } catch {
-                    Logger.app.error("StoreManager: Failed to verify transaction: \(error.localizedDescription, privacy: .public)")
+                    await Log.shared.error("Failed to verify transaction: \(error.localizedDescription)")
                 }
             }
         }
@@ -172,7 +171,7 @@ public final class StoreManager: ObservableObject {
             // Handle auto-renewable subscription
             await handleSubscription(for: transaction)
         default:
-            Logger.app.warning("StoreManager: handle unknown transaction product type \(transaction.productType.localizedDescription, privacy: .public)")
+                Log.shared.info("handle unknown transaction product type \(transaction.productType.localizedDescription)")
             break
         }
     }
@@ -181,7 +180,7 @@ public final class StoreManager: ObservableObject {
     private func unlockNonConsumable(for transaction: Transaction) async {
         guard let product = products.first(where: { $0.id == transaction.productID }) else {
             self.disableProLicense()
-            Logger.app.error("StoreManager: unlockNonConsumable -> product not found.")
+            Log.shared.error("unlockNonConsumable -> product not found.")
             return
         }
 
@@ -189,11 +188,11 @@ public final class StoreManager: ObservableObject {
             try self.enableProLicense(for: product.id)
             purchasedProducts.append(product)
         } catch {
-            Logger.app.error("StoreManager: unlockNonConsumable error: \(error.localizedDescription, privacy: .public)")
+            Log.shared.error("unlockNonConsumable error: \(error.localizedDescription)")
             return
         }
 
-        Logger.app.info("StoreManager: Unlocked non-consumable product: \(product.displayName, privacy: .public)")
+        Log.shared.info("Unlocked non-consumable product: \(product.displayName)")
     }
 
     // MARK: - Subscription Management
@@ -212,13 +211,13 @@ public final class StoreManager: ObservableObject {
                         purchasedProducts.append(product)
                         try self.enableProLicense(for: product.id)
 
-                        Logger.app.info("StoreManager: User is subscribed to \(product.displayName, privacy: .public)")
+                            Log.shared.info("User is subscribed to \(product.displayName)")
                     case .expired:
                         self.disableProLicense()
-                        Logger.app.info("StoreManager: Subscription expired for \(product.displayName, privacy: .public)")
+                            Log.shared.info("Subscription expired for \(product.displayName)")
                     case .revoked:
                         self.disableProLicense()
-                        Logger.app.info("StoreManager: Subscription revoked for \(product.displayName, privacy: .public)")
+                            Log.shared.info("Subscription revoked for \(product.displayName)")
                     default:
                         self.disableProLicense()
                         break
@@ -227,7 +226,7 @@ public final class StoreManager: ObservableObject {
             }
         } catch {
             self.disableProLicense()
-            Logger.app.error("StoreManager: Failed to handle subscription: \(error.localizedDescription, privacy: .public)")
+            Log.shared.error("Failed to handle subscription: \(error.localizedDescription)")
         }
     }
 
@@ -248,11 +247,11 @@ public final class StoreManager: ObservableObject {
 //                // existing customer
 //                try self.enableProLicense(productIdentifier: .Lifetime)
 //
-//                Logger.paywall.info("StoreManager: Found previous paid version \(originalAppVersion, privacy: .public) before 1.0.4. Granted lifetime.")
+//                Logger.paywall.info("StoreManager: Found previous paid version \(originalAppVersion) before 1.0.4. Granted lifetime.")
 //            }
 //        } catch {
 //            self.disableProLicense()
-//            Logger.paywall.error("StoreManager: verifyPaidVersion error: \(error.localizedDescription, privacy: .public)")
+//            Logger.paywall.error("StoreManager: verifyPaidVersion error: \(error.localizedDescription)")
 //            throw error
 //        }
 //    }
@@ -265,7 +264,7 @@ public final class StoreManager: ObservableObject {
     ///     - productIdentifier: AppNamePro.Annual, AppNamePro.Monthly, AppNamePro.Weekly or AppNamePro.Lifetime
     /// - throws: StoreError.productNotFound
     private func enableProLicense(for productIdentifier: String) throws {
-        Logger.app.info("StoreManager: entitlement name: \(productIdentifier)")
+        Log.shared.info("entitlement name: \(productIdentifier)")
         // get purchased product name
         guard let product = self.products.first(where: { $0.id == productIdentifier }) else {
             throw StoreError.productNotFound
@@ -274,7 +273,7 @@ public final class StoreManager: ObservableObject {
         hasPurchased = true
         UserDefaults.standard.set(hasPurchased, forKey: "hasPro")
         UserDefaults.standard.set(product.displayName, forKey: "currentEntitlement")
-        Logger.app.info("StoreManager: enabled \(product.displayName, privacy: .public) license.")
+        Log.shared.info("enabled \(product.displayName) license.")
     }
 
     /// Disable pro license
@@ -285,7 +284,8 @@ public final class StoreManager: ObservableObject {
         hasPurchased = false
         UserDefaults.standard.set(false, forKey: "hasPro")
         UserDefaults.standard.set("", forKey: "currentEntitlement")
-        Logger.app.info("StoreManager: disabled pro license.")
+        Log.shared.info("disabled pro license.")
+
     }
 }
 

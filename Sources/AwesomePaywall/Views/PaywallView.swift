@@ -74,18 +74,14 @@ struct PaywallView<ViewContent: View>: View {
         }
         // select product when freeTrial toggle changes
         .onChange(of: freeTrialEnabled) { _,trialState in
-            // if free trial toggle switched on,select weekly plan
-            if trialState,
-                let selectedProduct,
-                selectedProduct.subscription?.subscriptionPeriod == .yearly {
+            // if free trial toggle switched on and current plan is annual, select weekly plan
+            if trialState, let selectedProduct, selectedProduct.subscription?.subscriptionPeriod == .yearly {
                 selectWeeklyPlan()
                 return
             }
 
-            // if free trial toggle switched off, select yearly plan
-            if !trialState,
-                let selectedProduct,
-                selectedProduct.subscription?.subscriptionPeriod == .weekly {
+            // if free trial toggle switched off and current plan is weekly, select yearly plan
+            if !trialState, let selectedProduct, selectedProduct.subscription?.subscriptionPeriod == .weekly {
                 selectYearlyPlan()
             }
         }

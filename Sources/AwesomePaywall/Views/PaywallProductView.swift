@@ -64,11 +64,15 @@ extension PaywallView {
 
         private var periodName: String {
             get {
-                switch product.subscription?.subscriptionPeriod {
-                    case .yearly: "year"
-                    case .monthly: "month"
-                    case .weekly: "week"
-                    default: ""
+                if let subscription = product.subscription {
+                    switch subscription.subscriptionPeriod {
+                        case .yearly: "year"
+                        case .monthly: "month"
+                        case .weekly: "week"
+                        default: ""
+                    }
+                } else {
+                    "Unknown"
                 }
             }
         }
@@ -76,10 +80,10 @@ extension PaywallView {
         private var priceFormatted: String {
             get {
                 if product.hasTrial() {
-                    "3 days free trial, then \(product.displayPrice)/\(periodName)"
-                } else {
-                    "\(product.displayPrice)/\(periodName)"
+                    return "3 days free trial, then \(product.displayPrice)/\(periodName)"
                 }
+
+                return "\(product.displayPrice)/\(periodName)"
             }
         }
 

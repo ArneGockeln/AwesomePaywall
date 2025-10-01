@@ -13,7 +13,7 @@ import OSLog
 private let logger = Logger(subsystem: "PushUpBattle", category: "AwesomePaywall")
 
 @MainActor
-final class APStore: ObservableObject {
+public final class APStore: ObservableObject {
     private(set) public var productIDs: [String] = []
     private var productsLoaded: Bool = false
 
@@ -30,7 +30,7 @@ final class APStore: ObservableObject {
 
     private var updateTask: Task<Void, Never>?
 
-    init() {
+    public init() {
         updateTask = observeTransactionUpdates()
     }
 
@@ -39,7 +39,7 @@ final class APStore: ObservableObject {
     }
 
     // Configure the store, load products and subscribe to transactions
-    func configure(productIDs: [String]) async {
+    public func configure(productIDs: [String]) async {
         self.productIDs = productIDs
 
         await loadProducts()
@@ -49,7 +49,7 @@ final class APStore: ObservableObject {
     }
 
     // Purchase product and activate subscription state
-    func purchase(_ product: Product) async throws {
+    public func purchase(_ product: Product) async throws {
         self.isLoading = true
         let result = try await product.purchase()
         switch result {
@@ -70,7 +70,7 @@ final class APStore: ObservableObject {
     }
 
     /// Restore Purchases and validate entitlements
-    func restorePurchases() async {
+    public func restorePurchases() async {
         self.isLoading = true
         do {
             try await AppStore.sync()

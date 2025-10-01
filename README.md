@@ -46,44 +46,35 @@ In Xcode add a synchronised storekit file to your project.
 - Choose your team and app bundle id
 - Add the storekit file to your project target 
 
-### 3. Setup the StoreManager
-To setup the StoreManager just import AwesomePaywall in your main app file and run a configuration task.
+### 3. Setup the Paywall
+To setup the paywall just import AwesomePaywall in your main app file and apply the view modifier to ContentView.
 Don't forget to set the product identifiers, terms of use and privacy policy web urls!
 
 ```swift
 import SwiftUI
-// Import the Package
 import AwesomePaywall
 
 @main
-struct ElatedApp: App {
-    // Initialise the StoreManager
-    @StateObject private var storeManager: StoreManager = .shared
-
+struct AppMain: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                // Add task to fetch the configuration and synchronise purchases
-                .task {
-                    // set an ordered list of product identifiers. First in list appears first in paywall.
-                    let identifiers = [
-                        "YourAppNamePro.Annual",
-                        "YourAppNamePro.Weekly"
-                    ]
-                    
-                    await storeManager.configure(productIdentifiers: identifiers,
-                         termsOfUseUrl: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
-                         privacyUrl: "https://yourdomain.com/privacy"
-                    ))
+                .awesomePaywall(with: APConfiguration(
+                        productIDs: ["YourApp.Annual", "YourApp.Weekly"],
+                        privacyUrl: URL(string: "https://yourdomain.com/privacy")!,
+                        termsOfServiceUrl: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!,
+                        backgroundColor: Color.red,
+                        foregroundColor: Color.black
+                    )
+                ) {
+                    PaywallMarketingView()
                 }
         }
-        // Make the StoreManager accessible to underlying views
-        .environmentObject(self.storeManager)
     }
 }
 ```
 
-### 4. Add paywall to view
+### 4. Present a paywall
 The paywall needs to get triggered by a state var. For example if a feature is only available to subscribers, toggle the state var and present the paywall.
 
 ```swift
@@ -91,45 +82,38 @@ import SwiftUI
 import AwesomePaywall
 
 struct ContentView: View {
-    @State private var isPaywallPresented: Bool = false
-    @EnvironmentObject private var storeManager: StoreManager
+    // Get access to the APStore
+    @EnvironmentObject private var storeModel: APStore
 
     var body: some View {
         VStack {
             // Toggle the paywall
-            Button(action: { isPaywallPresented.toggle() }) {
+            Button(action: { storeModel.isPaywallPresented.toggle() }) {
                 Text("Subscribe")
             }
 
             // Check if the current user is a paying customer
-            if storeManager.isPayingCustomer() {
+            if storeModel.hasProSubscription {
                 Text("This is only for subscribers visible")
             }
-        }
-        // Add Paywall fullscreen cover
-        .awesomePaywall(isPresented: $isPaywallPresented) {
-            // This represents the Title and main Features
-            PaywallHeroView()
         }
     }
 }
 ```
 
-### 5. Style the Hero View
-The hero view contains the title and main features above the product selector. It can be styled as you like. An example is available in `Example` folder.
+### 5. Style the Marketing View
+The marketing view contains a title and main features above the product selector. It can be styled as you like. An example is available in `Example` folder.
 
-Also the paywall has 2 color options. The backgroundColor and highlightColor.
+Also the paywall has 2 color options. The backgroundColor is fullscreen and the foregroundColor tints the border of the selected product and the background of the trial switch. 
 
 ```swift
-.awesomePaywall(isPresented: $isPaywallPresented, backgroundColor: Color.white, highlightColor: Color.green) {
-    PaywallHeroView()
+.awesomePaywall(...) {
+    PaywallMarketingView()
 }
-```
-
-The backgroundColor is fullscreen and the highlightColor tints the border of the selected product and the background of the trial switch. 
+``` 
 
 ## Requirements
-- iOS v17 is the minimum requirement.
+- iOS v18 is the minimum requirement.
 - Swift 5+
 - A SwiftUI Project
 

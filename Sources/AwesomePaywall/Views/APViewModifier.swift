@@ -11,22 +11,20 @@ import StoreKit
 struct APViewModifier<V: View>: ViewModifier where V: View {
     @StateObject private var store = APStore()
 
-    let productIDs: [String]
-    let privacyUrl: URL
-    let termsOfServiceUrl: URL
+    let config: APConfiguration
     let marketingView: () -> V
 
     func body(content: Content) -> some View {
         content
             // show full screen paywall
             .fullScreenCover(isPresented: $store.isPaywallPresented) {
-                SK2Paywall(privacyUrl: privacyUrl, termsOfServiceUrl: termsOfServiceUrl) {
+                AwesomePaywallView(config: config) {
                     marketingView()
                 }
             }
             // configure the store
             .task(priority: .background) {
-                await store.configure(productIDs: productIDs)
+                await store.configure(productIDs: config.productIDs)
             }
             // hide paywall when pro subscription was activated
             .onChange(of: store.hasProSubscription) { _, newState in
@@ -37,9 +35,9 @@ struct APViewModifier<V: View>: ViewModifier where V: View {
     }
 }
 
-extension View {
+public extension View {
     // Attach an Awesome Paywall for product ids to the view and initialise an observable store.
-    func awesomePaywall<V>(for productIDs: [String], termsOfServiceUrl: URL, privacyPolicyUrl: URL, marketingView: @escaping () -> V) -> some View where V: View {
-        modifier(APViewModifier(productIDs: productIDs, privacyUrl: privacyPolicyUrl, termsOfServiceUrl: termsOfServiceUrl, marketingView: marketingView))
+    func awesomePaywall<V>(with config: APConfiguration, marketingView: @escaping () -> V) -> some View where V: View {
+        modifier(APViewModifier(config: config, marketingView: marketingView))
     }
 }

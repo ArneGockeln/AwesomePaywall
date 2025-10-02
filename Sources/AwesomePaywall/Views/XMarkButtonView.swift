@@ -1,3 +1,12 @@
+//
+//  XMarkButtonView.swift
+//  AwesomePaywall
+//
+//  Created by Arne Gockeln on 01.10.25.
+//
+
+import SwiftUI
+
 struct XMarkButtonView: View {
         var body: some View {
             Image(systemName: "xmark")

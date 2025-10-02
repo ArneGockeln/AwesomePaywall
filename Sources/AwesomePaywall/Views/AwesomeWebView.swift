@@ -1,3 +1,13 @@
+//
+//  AwesomeWebView.swift
+//  AwesomePaywall
+//
+//  Created by Arne Gockeln on 01.10.25.
+//
+
+import SwiftUI
+import WebKit
+
 struct AwesomeWebView: UIViewRepresentable {
         let url: URL
 

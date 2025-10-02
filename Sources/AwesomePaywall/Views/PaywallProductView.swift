@@ -1,3 +1,13 @@
+//
+//  PaywallProductView.swift
+//  AwesomePaywall
+//
+//  Created by Arne Gockeln on 01.10.25.
+//
+
+import SwiftUI
+import StoreKit
+
 struct PaywallProductView<DiscountContent: View>: View {
         let product: Product
         @Binding var selected: Product?

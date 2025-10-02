@@ -7,6 +7,9 @@
 
 import SwiftUI
 import StoreKit
+import OSLog
+
+private let logger = Logger(subsystem: "com.arnegockeln.PushUpBattle", category: "AwesomePaywall")
 
 struct APViewModifier<V: View>: ViewModifier where V: View {
     @StateObject private var store = APStore()
@@ -29,6 +32,13 @@ struct APViewModifier<V: View>: ViewModifier where V: View {
             // hide paywall when pro subscription was activated
             .onChange(of: store.hasProSubscription) { _, newState in
                 store.isPaywallPresented = !newState
+            }
+            // Errors
+            .onChange(of: store.errors) { _, errorList in
+                guard !errorList.isEmpty else { return }
+                errorList.forEach { error in
+                    logger.error("PaywallError: \(error)")
+                }
             }
             // publish the store
             .environmentObject(store)

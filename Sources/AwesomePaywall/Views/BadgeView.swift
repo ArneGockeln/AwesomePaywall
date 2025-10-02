@@ -1,3 +1,12 @@
+//
+//  BadgeView.swift
+//  AwesomePaywall
+//
+//  Created by Arne Gockeln on 01.10.25.
+//
+
+import SwiftUI
+
 struct BadgeView: View {
         let text: LocalizedStringKey
         let backgroundColor: Color

@@ -1,3 +1,12 @@
+//
+//  DiscountBadgeView.swift
+//  AwesomePaywall
+//
+//  Created by Arne Gockeln on 01.10.25.
+//
+
+import SwiftUI
+
 struct DiscountBadgeView: View {
         let discount: Int
         let backgroundColor: Color

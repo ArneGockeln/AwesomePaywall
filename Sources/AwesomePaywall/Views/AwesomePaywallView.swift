@@ -8,9 +8,6 @@
 import SwiftUI
 import StoreKit
 import WebKit
-import OSLog
-
-private let log = Logger(subsystem: "com.arnegockeln.PushUpBattle", category: "Paywall")
 
 struct AwesomePaywallView<V: View>: View {
     let config: APConfiguration
@@ -24,6 +21,7 @@ struct AwesomePaywallView<V: View>: View {
     @EnvironmentObject private var apStore: APStore
     @State private var selectedProduct: Product?
     @State private var isSheetPresented: PresentedSheet?
+    @State private var isWeeklyProductSelected: Bool = false
 
     var body: some View {
         ZStack {
@@ -40,21 +38,8 @@ struct AwesomePaywallView<V: View>: View {
 
                 Spacer()
 
-                LazyVStack {
-                    if apStore.isLoading {
-                        ProgressView()
-                    } else {
-                        ForEach($apStore.products, id: \.id) { $product in
-                            self.productView(for: product)
-                                .onAppear {
-                                    // Select yearly product
-                                    guard !isWeeklySelected(product: product) else {
-                                        return
-                                    }
-                                    self.selectedProduct = product
-                                }
-                        }
-                    }
+                ForEach($apStore.products, id: \.id) { $product in
+                    self.productView(for: product)
                 }
 
                 purchaseButton()
@@ -63,26 +48,49 @@ struct AwesomePaywallView<V: View>: View {
             .padding(.bottom)
         }
         .ignoresSafeArea()
+        .onAppear {
+            // select yearly product
+            guard let firstProduct = self.apStore.products.first else {
+                return
+            }
+            selectYearly(firstProduct)
+        }
+        .onChange(of: self.selectedProduct) { _,newProduct in
+            // if weekly product is selected, update button text
+            guard let prod = newProduct else {
+                return
+            }
+
+            guard let period = prod.subscription?.subscriptionPeriod else {
+                return
+            }
+
+            if period == Product.SubscriptionPeriod.weekly {
+                self.isWeeklyProductSelected = true
+            } else {
+                self.isWeeklyProductSelected = false
+            }
+        }
     }
 
+    // Used in onAppear of products.forEach
+    private func selectYearly(_ product: Product) {
+        guard product.subscription?.subscriptionPeriod == Product.SubscriptionPeriod.yearly else {
+            return
+        }
+        self.selectedProduct = product
+    }
+
+    // Used in productView()
     private func isProductSelected(_ product: Product) -> Bool {
         guard let selectedProduct else { return false }
         return product.id == selectedProduct.id
     }
 
-    private func weeklyProduct() -> Product? {
-        guard let weekly = self.apStore.products.last else {
-            return nil
-        }
-        return weekly
-    }
-
+    // Used in productView()
     private func calculateDiscount(for product: Product) -> Int? {
-        guard product.subscription?.subscriptionPeriod.unit == .year else {
-            return nil
-        }
-
-        guard let weekly = weeklyProduct()?.price else {
+        guard product.subscription?.subscriptionPeriod.unit == .year,
+              let weekly = self.apStore.products.last?.price else {
             return nil
         }
 
@@ -93,9 +101,14 @@ struct AwesomePaywallView<V: View>: View {
         return discount
     }
 
-    private func isWeeklySelected(product: Product?) -> Bool {
-        guard let selectedProduct = product else { return false }
-        return selectedProduct.subscription?.subscriptionPeriod.unit == .week
+    // Check if self.selectedProduct equals period
+    // Used in purchaseButton
+    private func isSelected(period: Product.SubscriptionPeriod) -> Bool {
+        guard let product = self.selectedProduct,
+              product.subscription?.subscriptionPeriod == period else {
+            return false
+        }
+        return true
     }
 }
 
@@ -165,7 +178,7 @@ extension AwesomePaywallView {
                         .tint(Color.white)
                 } else {
                     HStack {
-                        if isWeeklySelected(product: self.selectedProduct) {
+                        if self.isWeeklyProductSelected {
                             Text("Start Free Trial")
                         } else {
                             Text("Unlock Now")

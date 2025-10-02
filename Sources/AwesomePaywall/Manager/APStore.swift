@@ -19,12 +19,11 @@ public final class APStore: ObservableObject {
 
     @Published var products: [Product] = []
     @Published private(set) var activeSubscriptions: Set<StoreKit.Transaction> = []
-    @Published private(set) var purchasedProductIDs: Set<String> = []
     @Published private(set) var errors: [String] = []
 
     // Check if a pro subscription is active
     public var hasProSubscription: Bool {
-        return !self.purchasedProductIDs.isEmpty
+        return !self.activeSubscriptions.isEmpty
     }
 
     private var updateTask: Task<Void, Never>?
@@ -55,7 +54,6 @@ public final class APStore: ObservableObject {
             case .success(let verificationResult):
                 let transaction = try verificationResult.payloadValue // Throws if unverified
                 activeSubscriptions.insert(transaction)
-                purchasedProductIDs.insert(product.id)
                 await transaction.finish() // avoid reprocessing
 
             @unknown default:
@@ -95,7 +93,6 @@ public final class APStore: ObservableObject {
     // Validate active subscriptions
     private func updateActiveSubscriptions() async {
         var newActiveSubscriptions: Set<StoreKit.Transaction> = []
-        var newPurchasedIDs: Set<String> = []
 
         for await entitlement in Transaction.currentEntitlements {
             guard case .verified(let transaction) = entitlement else {
@@ -107,7 +104,6 @@ public final class APStore: ObservableObject {
             switch state {
                 case .subscribed:
                     newActiveSubscriptions.insert(transaction)
-                    newPurchasedIDs.insert(transaction.productID)
 
                 default:
                     continue
@@ -115,7 +111,6 @@ public final class APStore: ObservableObject {
         }
 
         activeSubscriptions = newActiveSubscriptions
-        purchasedProductIDs = newPurchasedIDs
     }
 
     // Observe realtime communication

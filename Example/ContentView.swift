@@ -9,30 +9,25 @@ import SwiftUI
 import AwesomePaywall
 
 struct ContentView: View {
-    @State private var isPaywallPresented: Bool = false
-    @EnvironmentObject private var storeManager: StoreManager
+    // Get access to the APStore
+    @EnvironmentObject private var storeModel: APStore
 
     var body: some View {
         VStack {
             // Toggle the paywall
-            Button(action: { isPaywallPresented.toggle() }) {
+            Button(action: { storeModel.isPaywallPresented.toggle() }) {
                 Text("Subscribe")
             }
 
             // Check if the current user is a paying customer
-            if storeManager.isPayingCustomer() {
+            if storeModel.hasProSubscription {
                 Text("This is only for subscribers visible")
             }
-        }
-        // Add Paywall fullscreen cover
-        .awesomePaywall(isPresented: $isPaywallPresented) {
-            // This represents the Title and main Features
-            PaywallHeroView()
         }
     }
 }
 
 #Preview {
     ContentView()
-        .environmentObject(StoreManager.shared)
+        .environmentObject(APStore())
 }

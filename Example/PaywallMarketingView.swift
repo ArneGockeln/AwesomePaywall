@@ -1,5 +1,5 @@
 //
-//  PaywallHeroView.swift
+//  PaywallMarketingView.swift
 //  AwesomePaywall
 //
 //  Created by Arne Gockeln on 21.09.25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PaywallHeroView: View {
+struct PaywallMarketingView: View {
     var body: some View {
         VStack {
             // Title
@@ -30,7 +30,7 @@ struct PaywallHeroView: View {
     struct TitleView: View {
         var body: some View {
             ZStack {
-                Text("Elated")
+                Text("Your Awesome App")
                     .font(.system(size: 40))
                     .bold()
 
@@ -77,5 +77,5 @@ struct PaywallHeroView: View {
 }
 
 #Preview {
-    PaywallHeroView()
+    PaywallMarketingView()
 }

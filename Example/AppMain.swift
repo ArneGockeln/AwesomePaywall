@@ -10,18 +10,19 @@ import AwesomePaywall
 
 @main
 struct AppMain: App {
-    @StateObject private var storeManager: StoreManager = .shared
-
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .task {
-                    await storeManager.configure(productIdentifiers: [
-                        "YourAppNamePro.Annual",
-                        "YourAppNamePro.Weekly"
-                    ])
+                .awesomePaywall(with: APConfiguration(
+                        productIDs: ["YourApp.Annual", "YourApp.Weekly"],
+                        privacyUrl: URL(string: "https://yourdomain.com/privacy")!,
+                        termsOfServiceUrl: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!,
+                        backgroundColor: Color.red,
+                        foregroundColor: Color.black
+                    )
+                ) {
+                    PaywallMarketingView()
                 }
         }
-        .environmentObject(self.storeManager)
     }
 }

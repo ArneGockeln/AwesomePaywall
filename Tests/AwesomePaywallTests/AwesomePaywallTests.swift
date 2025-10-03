@@ -1,4 +1,8 @@
+// https://swiftwithmajid.com/2024/01/09/storekit-testing-in-swift/
+
 import XCTest
+import StoreKitTest
+
 @testable import AwesomePaywall
 
 final class AwesomePaywallTests: XCTestCase {

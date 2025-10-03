@@ -114,7 +114,7 @@ Also the paywall has 2 color options. The backgroundColor is fullscreen and the 
 
 ## Requirements
 - iOS v18 is the minimum requirement.
-- Swift 5+
+- Swift 6
 - A SwiftUI Project
 
 ## 📃 License
@@ -124,4 +124,5 @@ Also the paywall has 2 color options. The backgroundColor is fullscreen and the 
 
 The following projects have integrated AwesomePaywall in their App.
 
-- [Elated | Widget Counter](https://arnesoftware.com/apps) available on the [AppStore](https://apps.apple.com/de/app/elated-urlaubs-countdown-timer/id6740820297)
+- [Elated | Countdown Widgets](https://apps.apple.com/de/app/elated-urlaubs-countdown-timer/id6740820297){:target="_blank"}
+- [PushUp Battle ](https://apps.apple.com/us/app/push-up-battle-counter/id6752408363){:target="_blank"}

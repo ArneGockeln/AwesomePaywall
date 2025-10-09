@@ -40,6 +40,8 @@ struct APViewModifier<V: View>: ViewModifier where V: View {
                     logger.error("PaywallError: \(error)")
                 }
             }
+            // set environment key
+            .environment(\.hasProSubscription, store.hasProSubscription)
             // publish the store
             .environmentObject(store)
     }

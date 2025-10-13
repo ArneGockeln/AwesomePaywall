@@ -48,69 +48,111 @@ In Xcode add a synchronised storekit file to your project.
 
 ### 3. Setup the Paywall
 To setup the paywall just import AwesomePaywall in your main app file and apply the view modifier to ContentView.
-Don't forget to set the product identifiers, terms of use and privacy policy web urls!
+Don't forget to set the product identifiers, terms of service and privacy policy web urls!
 
-```swift
-import SwiftUI
-import AwesomePaywall
-
-@main
-struct AppMain: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .awesomePaywall(with: APConfiguration(
-                        productIDs: ["YourApp.Annual", "YourApp.Weekly"],
-                        privacyUrl: URL(string: "https://yourdomain.com/privacy")!,
-                        termsOfServiceUrl: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!,
-                        backgroundColor: Color.red,
-                        foregroundColor: Color.black
-                    )
-                ) {
-                    PaywallMarketingView()
-                }
-        }
-    }
-}
-```
-
-### 4. Present a paywall
-The paywall needs to get triggered by a state var. For example if a feature is only available to subscribers, toggle the state var and present the paywall.
+The styling of your paywall can be customized by implementing a Paywall Template.
 
 ```swift
 import SwiftUI
 import AwesomePaywall
 
 struct ContentView: View {
-    // Get access to the APStore
-    @EnvironmentObject private var storeModel: APStore
+    // Toggle paywall visibility
+    @Environment(\.paywallToggleAction) var paywallToggleAction
+
+    // Optional: use environment key .hasProSubscription for active customer checks
+    @Environment(\.hasProSubscription) private var hasProSubscription
 
     var body: some View {
         VStack {
             // Toggle the paywall
-            Button(action: { storeModel.isPaywallPresented.toggle() }) {
+            Button(action: { paywallToggleAction?() }) {
                 Text("Subscribe")
             }
 
             // Check if the current user is a paying customer
-            if storeModel.hasProSubscription {
+            if hasProSubscription {
                 Text("This is only for subscribers visible")
             }
+        }
+        .awesomePaywall(with: PaywallConfiguration(
+                productIDs: ["YourAppPro.Annual", "YourAppPro.Weekly"],
+                privacyUrl: URL(string: "https://yourapp.com/privacy")!,
+                termsOfServiceUrl: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+        ) {
+            PaywallDefaultTemplate(
+                title: "Your Awesome App",
+                features: [
+                    .init(systemImageName: "list.star", title: "Unlimited Features"),
+                    .init(systemImageName: "widget.large", title: "Become the X-Wing Copilot"),
+                    .init(systemImageName: "lock.square.stack", title: "Remove Anoying Paywalls")
+                ]
+            )
         }
     }
 }
 ```
 
-### 5. Style the Marketing View
-The marketing view contains a title and main features above the product selector. It can be styled as you like. An example is available in `Example` folder.
+### 4. Present a paywall
+The paywall needs to get triggered by a state var. For example if a feature is only available to subscribers, toggle the state var by calling the `paywallToggleAction` and present the paywall.
 
-Also the paywall has 2 color options. The backgroundColor is fullscreen and the foregroundColor tints the border of the selected product and the background of the trial switch. 
+```swift
+import SwiftUI
+import AwesomePaywall
+
+struct ContentView: View {
+    // Toggle paywall visibility
+    @Environment(\.paywallToggleAction) var paywallToggleAction
+
+    // Optional: use environment key .hasProSubscription for active customer checks
+    @Environment(\.hasProSubscription) private var hasProSubscription
+
+    var body: some View {
+        VStack {
+            // Toggle the paywall
+            Button(action: { paywallToggleAction?() }) {
+                Text("Subscribe")
+            }
+
+            // Check if the current user is a paying customer
+            if hasProSubscription {
+                Text("This is only for subscribers visible")
+            }
+        }
+        .awesomePaywall(...)
+    }
+}
+```
+
+### 5. Style the Paywall View
+You can style your paywall as you like. An example is available in the file `Example/PaywallDefaultTemplate.swift`.
 
 ```swift
 .awesomePaywall(...) {
-    PaywallMarketingView()
+    PaywallDefaultTemplate(
+        title: "Your Awesome App",
+        features: [
+            .init(systemImageName: "list.star", title: "Unlimited Features"),
+            .init(systemImageName: "widget.large", title: "Become the X-Wing Copilot"),
+            .init(systemImageName: "lock.square.stack", title: "Remove Anoying Paywalls")
+        ]
+    )
 }
-``` 
+```
+
+### 6. Actions
+To show the paywall, purchase, restore purchase or simply show the legal urls, there are actions available in the environment.
+
+```swift
+// Toggle paywall visibility
+@Environment(\.paywallToggleAction) var paywallToggleAction
+// Call to restore purchased products
+@Environment(\.paywallRestoreAction) private var restoreAction
+// Call to show a legal web view
+@Environment(\.paywallLegalSheetAction) private var legalSheetAction
+// Call to purchase a product
+@Environment(\.paywallPurchaseAction) private var purchaseAction
+```
 
 ## Requirements
 - iOS v18 is the minimum requirement.
@@ -124,5 +166,5 @@ Also the paywall has 2 color options. The backgroundColor is fullscreen and the 
 
 The following projects have integrated AwesomePaywall in their App.
 
-- [Elated | Countdown Widgets](https://apps.apple.com/de/app/elated-urlaubs-countdown-timer/id6740820297){:target="_blank"}
-- [PushUp Battle ](https://apps.apple.com/us/app/push-up-battle-counter/id6752408363){:target="_blank"}
+- [Elated | Countdown Widgets](https://apps.apple.com/de/app/elated-urlaubs-countdown-timer/id6740820297)
+- [PushUp Battle](https://apps.apple.com/us/app/push-up-battle-counter/id6752408363)

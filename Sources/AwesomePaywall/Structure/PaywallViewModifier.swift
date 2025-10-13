@@ -24,6 +24,8 @@ struct PaywallViewModifier<Template: View>: ViewModifier where Template: View {
             // configure the store
             .task(priority: .background) {
                 await store.configure(productIDs: config.productIDs)
+                // preselect the weekly
+                await store.select(by: .weekly)
             }
             // hide paywall when pro subscription was activated
             .onChange(of: store.hasProSubscription) { _, newState in

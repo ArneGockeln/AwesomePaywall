@@ -22,7 +22,7 @@ public struct PaywallDefaultTemplate: View {
     public var body: some View {
         WithBackgroundColor(color: Color.white, asGradient: true, gradientStart: .top, gradientStop: .bottom) {
             VStack {
-                closeButton()
+                PaywallDefaultCloseButton()
 
                 Spacer()
 
@@ -40,12 +40,9 @@ public struct PaywallDefaultTemplate: View {
 
                 Spacer()
 
-                ForEach($store.products, id: \.id) { $product in
-                    self.makeProductView(for: product)
-                }
-
-                purchaseButton()
-                termsAndServices()
+                PaywallDefaultProductList()
+                PaywallDefaultPurchaseButton()
+                PaywallDefaultLegalButtonStack()
             }
         }
         .task {
@@ -105,150 +102,6 @@ public struct PaywallDefaultTemplate: View {
     }
 }
 
-extension PaywallDefaultTemplate {
-    @ViewBuilder
-    private func makeProductView(for product: Product) -> some View {
-        ProductRow(product: product)
-    }
-}
-
-extension PaywallDefaultTemplate {
-    struct ProductRow: View {
-        @EnvironmentObject private var store: PaywallStore
-        let product: Product
-        @State private var discount: Int?
-
-        var body: some View {
-            HStack(alignment: .center) {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("\(product.displayPrice) \(product.displayName)")
-                            .font(.headline.bold())
-
-                        if let discount = discount {
-                            DiscountBadgeView(discount: discount, backgroundColor: Color.red)
-                                .foregroundStyle(Color.white)
-                        }
-                    }
-
-                    Text(product.description)
-                        .font(.footnote)
-                }
-                .padding([.vertical, .leading], 8)
-
-                Spacer()
-
-                Image(systemName: store.isSelected(product) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(store.isSelected(product) ? Color.black : Color.secondary)
-                    .padding(.trailing, 8)
-            }
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .overlay {
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(store.isSelected(product) ? Color.black : Color.gray, lineWidth: 2)
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 6)
-            .onTapGesture {
-                store.selectedProduct = product
-            }
-            .task {
-                if let value = await store.calculateDiscount(for: product) {
-                    discount = value
-                }
-            }
-        }
-    }
-}
-
-extension PaywallDefaultTemplate {
-    @ViewBuilder
-    private func legalButton(text: LocalizedStringKey, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(text)
-                .font(.footnote.bold())
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-extension PaywallDefaultTemplate {
-    @ViewBuilder
-    private func purchaseButton() -> some View {
-        Button(action: {
-            guard let selectedProduct = store.selectedProduct else { return }
-            purchaseAction?(selectedProduct)
-        }) {
-            HStack {
-                Spacer()
-                if store.isLoading {
-                    ProgressView()
-                        .tint(Color.white)
-                } else {
-                    HStack {
-                        if store.isSelected(period: .weekly) {
-                            Text("Start Free Trial")
-                        } else {
-                            Text("Unlock Now")
-                        }
-                        Image(systemName: "chevron.right")
-                    }
-                }
-                Spacer()
-            }
-            .font(.title3.bold())
-            .padding()
-            .foregroundStyle(Color.white)
-        }
-        .background(Color.black)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-        .padding()
-        .disabled(store.isLoading || store.selectedProduct == nil)
-    }
-}
-
-extension PaywallDefaultTemplate {
-    @ViewBuilder
-    private func termsAndServices() -> some View {
-        HStack {
-            legalButton(text: "Restore Purchase") {
-                restoreAction?()
-            }
-
-            Text("•")
-
-            legalButton(text: "Terms of Use") {
-                legalSheetAction?(.terms)
-            }
-
-            Text("•")
-
-            legalButton(text: "Privacy Policy") {
-                legalSheetAction?(.privacy)
-            }
-        }
-        .padding([.horizontal, .bottom])
-    }
-}
-
-extension PaywallDefaultTemplate {
-    @ViewBuilder
-    private func closeButton() -> some View {
-        HStack {
-            Spacer()
-
-            Button(action: { toggleAction?() }) {
-                XMarkButtonView()
-                    .opacity(0.4)
-            }
-            .padding(.trailing)
-        }
-        .padding(.trailing, 10)
-        .padding(.top, 60)
-    }
-}
-
 #Preview {
     @Previewable @StateObject var store = PaywallStore()
     PaywallDefaultTemplate(
@@ -264,3 +117,4 @@ extension PaywallDefaultTemplate {
             await store.configure(productIDs: ["YourAppPro.Weekly", "YourAppPro.Annual"])
         }
 }
+

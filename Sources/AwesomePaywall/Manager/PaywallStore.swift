@@ -39,9 +39,9 @@ public final class PaywallStore: ObservableObject {
     @Published public var isPaywallPresented: Bool = false
     @Published public var isLoading: Bool = false
 
-    @Published var products: [Product] = []
+    @Published public var products: [Product] = []
     @Published private(set) var activeSubscriptions: Set<StoreKit.Transaction> = []
-    @Published var selectedProduct: Product?
+    @Published public var selectedProduct: Product?
 
     @Published var error: Swift.Error?
 

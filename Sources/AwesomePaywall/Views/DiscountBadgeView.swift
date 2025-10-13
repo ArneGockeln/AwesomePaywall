@@ -13,7 +13,6 @@ struct DiscountBadgeView: View {
 
         var body: some View {
             Text("SAVE \(discount)%")
-                .foregroundStyle(Color.black)
                 .font(.caption.bold())
                 .padding(6)
                 .background {
